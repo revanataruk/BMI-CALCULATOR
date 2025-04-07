@@ -3,7 +3,7 @@
 Aplikasi sederhana untuk menghitung Body Mass Index (BMI) menggunakan Windows Forms (.NET). Dibuat sebagai tugas pembelajaran dasar pemrograman dengan Visual Studio.
 
 ## 📸 Screenshot
-![Tampilan BMI Calculator]([https://link-gambar-screenshot.png](https://raw.githubusercontent.com/revanataruk/BMI-Calculator/master/screenshot(259).png))
+![Tampilan BMI Calculator](https://raw.githubusercontent.com/revanataruk/BMI-Calculator/master/Screenshot-(259).png))
 
 ## 🔧 Fitur
 - Input berat badan (kg)
