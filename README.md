@@ -2,7 +2,7 @@
 
 A Windows Forms application that calculates BMI (Body Mass Index) and body fat percentage, tracks history, and visualizes progress with charts.
 
-![BMI Calculator Screenshot](https://raw.githubusercontent.com/revanataruk/BMI-Calculator/mockup.jpg)
+![App Mockup](https://github.com/revanataruk/BMI-Calculator/raw/master/mockup.jpg)
 
 ## 🧩 Features
 
