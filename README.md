@@ -1,17 +1,21 @@
 # 🧮 BMI Calculator
 
-A Windows Forms application that calculates BMI (Body Mass Index) and body fat percentage, tracks history, and visualizes progress with charts.
+A Windows Forms application that calculates BMI (Body Mass Index) and body fat percentage, tracks history, visualizes progress with charts and saves data to a database
 
 ![App Mockup](https://github.com/revanataruk/BMI-Calculator/raw/master/mockup.jpg)
 
 ## 🧩 Features
 
-- Calculate BMI based on height and weight
-- Determine BMI category (Skinny, Normal, Fat, Obesity)
-- Calculate body fat percentage based on BMI, age, and gender
-- Track history of BMI measurements
-- Visualize BMI progress with interactive charts
-- Simple and intuitive user interface
+- 🔢 Calculate BMI based on height and weight
+-🧍‍♂️ Determine BMI category (Skinny, Normal, Fat, Obesity)
+- 💪 Calculate body fat percentage based on BMI, age, and gender
+- 🕒 Track history of BMI measurements
+- 🧠 Data persistence with SQLite database
+- 📊 Visualize BMI progress with interactive charts (LiveCharts)
+- 📃 View list of past measurements (with date, BMI, fat %, and category)
+- ↩️ Navigation between panels (Calculator ↔ Chart History)
+- 🧑‍💻 Simple and intuitive Windows Forms interface
+- 💾 Auto-save BMI and body fat data into local database on calculation
 
 ## 📚 Technologies Used
 
@@ -19,6 +23,7 @@ A Windows Forms application that calculates BMI (Body Mass Index) and body fat p
 - Windows Forms
 - LiveCharts (for data visualization)
 - Visual Studio 2022
+- SQLite (System.Data.SQLite)
 
 ## 📋 Requirements
 
@@ -41,15 +46,14 @@ A Windows Forms application that calculates BMI (Body Mass Index) and body fat p
 
 ## 👨‍💻 Usage
 
-1. Enter your height in centimeters
-2. Enter your weight in kilograms
-3. Enter your age
-4. Select your gender (Man/Woman)
-5. Click "Calculate" to get your BMI results
-6. View your BMI history and progress chart
+1.Enter your height (cm), weight (kg), age
+2.Select your gender
+3.Click Calculate
+4.View your BMI, Body Fat %, and category
+5.Your data is automatically saved
+6.Click the View History button to see your past entries and chart
 
-## How BMI is Calculated
-
+## ⚙️ How BMI is Calculated
 The application uses the standard BMI formula:
 ```
 BMI = weight(kg) / (height(m))²
@@ -69,6 +73,7 @@ Body Fat Percentage is estimated using the following formulas:
 
 - LiveCharts.WinForms
 - LiveCharts.Wpf
+- System.Data.SQLite
 
 ## 🎯 Future Enhancements
 
