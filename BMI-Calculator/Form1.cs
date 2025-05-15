@@ -162,8 +162,8 @@ namespace BMI_Calculator
                 else
                     bodyFat = (1.20 * bmi) + (0.23 * usia) - 5.4;
 
-                label5.Text = $"BMI Anda: {bmi:F2} ({kategori})";
-                label16.Text = $"BMI  Anda: {bmi:F2}";
+                label5.Text = $"BMI : {bmi:F2} ({kategori})";
+                label16.Text = $"BMI : {bmi:F2}";
                 label6.Text = $"Body Fat: {bodyFat:F2}%";
 
                 DateTime now = DateTime.Now;
@@ -525,17 +525,19 @@ namespace BMI_Calculator
                     }
                     else
                     {
-                        // Show all data without user filtering when not logged in
-                        query = "SELECT * FROM bmi_records WHERE UserEmail = 'guest' OR UserEmail IS NULL ORDER BY Date DESC";
+                        // Show guest data when not logged in
+                        query = "SELECT * FROM bmi_records WHERE UserEmail = 'guest' ORDER BY Date DESC";
                         cmd = new MySqlCommand(query, conn);
                     }
 
                     using (MySqlDataReader reader = cmd.ExecuteReader())
                     {
                         int counter = 1;
+                        bool hasData = false;
 
                         while (reader.Read())
                         {
+                            hasData = true;
                             DateTime date = reader.GetDateTime("Date");
                             float bmi = reader.GetFloat("BMI");
 
@@ -549,15 +551,20 @@ namespace BMI_Calculator
 
                             listBox1.Items.Add(logItem);
 
+                            // Add to chart
                             lineSeries.Values.Add(bmi);
                             cartesianChart1.AxisX[0].Labels.Add(counter.ToString());
-
                             riwayatBMI.Add(bmi);
 
                             counter++;
                         }
 
                         hitungKe = counter;
+
+                        if (!hasData)
+                        {
+                            Console.WriteLine("No data found for user: " + (isLoggedIn ? loggedInEmail : "guest"));
+                        }
                     }
                 }
 
@@ -567,7 +574,7 @@ namespace BMI_Calculator
             catch (Exception ex)
             {
                 MessageBox.Show("Error loading data from database: " + ex.Message,
-                               "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                              "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -575,6 +582,8 @@ namespace BMI_Calculator
         {
             if (isLoggedIn)
             {
+                // Reload data when viewing BMI history
+                LoadDataFromDatabase();
                 ShowPanel(panel2);
             }
             else
@@ -582,7 +591,7 @@ namespace BMI_Calculator
                 MessageBox.Show("Please login to continue", "Need Login",
                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 lastButtonClicked = 6;
-                ShowPanel(panel5);
+                ShowPanel(panel5); // Show login panel
             }
         }
 
@@ -682,6 +691,9 @@ namespace BMI_Calculator
                 isLoggedIn = true;
                 loggedInEmail = email;
                 label18.Text = $"Welcome {email}";
+
+                // Reload data from database based on logged in user
+                LoadDataFromDatabase();
 
                 // Redirect based on which button was clicked last
                 switch (lastButtonClicked)
@@ -832,9 +844,13 @@ namespace BMI_Calculator
             loggedInEmail = "";
             label18.Text = "Please login to continue";
 
+            // Reload data for guest user
+            LoadDataFromDatabase();
+
             MessageBox.Show("You have been logged out successfully.", "Logout Successful",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
-                ShowPanel(panel5);
+            ShowPanel(panel5);
+
         }
 
         private void label11_Click(object sender, EventArgs e)

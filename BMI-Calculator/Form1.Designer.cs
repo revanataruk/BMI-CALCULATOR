@@ -147,7 +147,7 @@
             this.panel5.Controls.Add(this.label13);
             this.panel5.Controls.Add(this.textBox4);
             this.panel5.Controls.Add(this.label12);
-            this.panel5.Location = new System.Drawing.Point(1154, 0);
+            this.panel5.Location = new System.Drawing.Point(0, 0);
             this.panel5.Name = "panel5";
             this.panel5.Size = new System.Drawing.Size(284, 418);
             this.panel5.TabIndex = 18;
@@ -258,7 +258,7 @@
             this.panel4.Controls.Add(this.button11);
             this.panel4.Controls.Add(this.button10);
             this.panel4.Controls.Add(this.label11);
-            this.panel4.Location = new System.Drawing.Point(864, 0);
+            this.panel4.Location = new System.Drawing.Point(1, 0);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(284, 418);
             this.panel4.TabIndex = 17;
@@ -349,7 +349,7 @@
             this.panel3.Controls.Add(this.label15);
             this.panel3.Controls.Add(this.label10);
             this.panel3.Controls.Add(this.label8);
-            this.panel3.Location = new System.Drawing.Point(574, 0);
+            this.panel3.Location = new System.Drawing.Point(1, 0);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(284, 418);
             this.panel3.TabIndex = 1;
@@ -418,7 +418,7 @@
             this.panel2.Controls.Add(this.label5);
             this.panel2.Controls.Add(this.label6);
             this.panel2.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.panel2.Location = new System.Drawing.Point(286, 0);
+            this.panel2.Location = new System.Drawing.Point(1, 0);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(284, 418);
             this.panel2.TabIndex = 1;
@@ -676,7 +676,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1497, 450);
+            this.ClientSize = new System.Drawing.Size(284, 450);
             this.Controls.Add(this.panel5);
             this.Controls.Add(this.panel4);
             this.Controls.Add(this.panel3);
