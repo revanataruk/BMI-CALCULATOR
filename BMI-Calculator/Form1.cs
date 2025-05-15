@@ -20,6 +20,9 @@ namespace BMI_Calculator
     {
         private List<double> riwayatBMI = new List<double>();
         private int hitungKe = 1;
+        private bool isLoggedIn = false;
+        private string loggedInEmail = "";
+        private int lastButtonClicked = 0;
         public Form1()
         {
             InitializeComponent();
@@ -27,6 +30,12 @@ namespace BMI_Calculator
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            panel1.Visible = true;
+            panel2.Visible = false;
+            panel3.Visible = false;
+            panel4.Visible = false;
+            panel5.Visible = false;
+
             comboBox1.Items.Add("Man");
             comboBox1.Items.Add("Woman");
             comboBox1.SelectedIndex = 0;
@@ -56,6 +65,19 @@ namespace BMI_Calculator
             listBox1.Items.Add("Bmi          Date                  Time");
 
             LoadDataFromDatabase();
+            textBox5.PasswordChar = '*';
+        }
+
+        private void ShowPanel(System.Windows.Forms.Panel activePanel)
+        {
+            panel1.Visible = false;
+            panel2.Visible = false;
+            panel3.Visible = false;
+            panel4.Visible = false;
+            panel5.Visible = false;
+
+            activePanel.Visible = true;
+            activePanel.BringToFront();
         }
 
 
@@ -113,7 +135,7 @@ namespace BMI_Calculator
         {
             try
             {
-                double tinggi = double.Parse(textBox1.Text) / 100; 
+                double tinggi = double.Parse(textBox1.Text) / 100;
                 double berat = double.Parse(textBox2.Text);
                 int usia = int.Parse(textBox3.Text);
                 string gender = comboBox1.SelectedItem.ToString();
@@ -137,6 +159,7 @@ namespace BMI_Calculator
                     bodyFat = (1.20 * bmi) + (0.23 * usia) - 5.4;
 
                 label5.Text = $"BMI Anda: {bmi:F2} ({kategori})";
+                label16.Text = $"BMI  Anda: {bmi:F2}";
                 label6.Text = $"Body Fat: {bodyFat:F2}%";
 
                 DateTime now = DateTime.Now;
@@ -168,29 +191,39 @@ namespace BMI_Calculator
                 switch (kategori)
                 {
                     case "Skinny":
-                        label8.Text = "Saran: Tambahkan asupan kalori, konsumsi protein tinggi (daging, telur, kacang-kacangan).\nOlahraga: Weight lifting ringan, yoga, hindari cardio berlebih.";
+                        label8.Text = "Dietary Recommendations:\n• Increase caloric intake by 300-500 calories above BMR\n• Consume high protein (2g/kg body weight): beef, chicken, fish, eggs, dairy\n• Focus on complex carbohydrates: brown rice, whole grain bread, oatmeal, quinoa\n• Include healthy fats: avocados, olive oil, nuts, fatty fish\n• Eat 5-6 moderate-sized meals daily\n• Consider high-calorie nutritional smoothies with milk, fruits, protein, and nut butter";
+                        label15.Text = "Exercise Program:\n• Resistance training 3-4 times weekly focusing on compound movements\n• Perform squats, deadlifts, bench press with moderate weight (8-12 repetitions)\n• Allow adequate rest between sets (60-90 seconds)\n• Limit cardio to maximum 20 minutes, twice weekly\n• Core strengthening exercises twice weekly\n• Rest muscle groups for minimum 48 hours before retraining\n• Implement progressive overload by gradually increasing weights";
                         break;
                     case "Normal":
-                        label8.Text = "Saran: Pertahankan pola makan seimbang.\nOlahraga: Campuran cardio dan strength training 3-4x seminggu.";
+                        label8.Text = "Dietary Recommendations:\n• Maintain balanced nutrition with optimal macronutrient ratio (50% carbs, 30% protein, 20% fat)\n• Consume protein at 1.6-1.8g/kg body weight to preserve muscle mass\n• Diversify nutrient sources: fish, lean meat, eggs, legumes, seeds\n• Prioritize whole foods while minimizing processed options\n• Use the plate method: ½ vegetables, ¼ protein, ¼ carbohydrates\n• Ensure minimum 2 liters of water daily";
+                        label15.Text = "Exercise Program:\n• Combine cardio and strength training 4-5 times weekly\n• Include HIIT sessions twice weekly (20-30 minutes per session)\n• Perform weight training 2-3 times weekly targeting all major muscle groups\n• Engage in recreational activities like cycling or swimming once weekly\n• Incorporate flexibility and mobility exercises twice weekly\n• Maintain exercise intensity at 70-85% of maximum heart rate\n• Diversify training routines to prevent plateaus";
                         break;
                     case "Fat":
-                        label8.Text = "Saran: Kurangi makanan berlemak, perbanyak sayur dan buah.\nOlahraga: Fokus pada cardio seperti lari, bersepeda, minimal 30 menit per hari.";
+                        label8.Text = "Dietary Recommendations:\n• Create caloric deficit of 300-500 calories below BMR\n• Limit foods high in saturated fats and added sugars\n• Increase consumption of green vegetables, fresh fruits, and fiber (25-30g daily)\n• Choose lean protein sources: skinless poultry, fish, tofu, tempeh\n• Utilize healthy cooking methods: steaming, baking, boiling\n• Practice mindful eating and recognize satiety signals\n• Consider intermittent fasting with 16:8 protocol\n• Maintain a food journal to increase caloric awareness";
+                        label15.Text = "Exercise Program:\n• Emphasize cardiovascular training 4-5 times weekly for 45-60 minutes\n• Alternate between low-intensity steady state (LISS) and high-intensity interval training (HIIT)\n• Include jogging, cycling, swimming, and elliptical training in cardio routine\n• Add resistance training 2-3 times weekly to preserve muscle mass\n• Implement circuit-based workouts with minimal rest periods\n• Aim for 10,000 steps daily\n• Gradually increase intensity every 2 weeks";
                         break;
                     case "Obesity":
-                        label8.Text = "Saran: Konsultasi ke dokter gizi.\nMulai dari diet rendah kalori, banyak minum air putih.\nOlahraga: Jalan cepat, berenang, jangan terlalu berat di awal.";
+                        label8.Text = "Dietary Recommendations:\n• Consult with a registered dietitian for a safe weight reduction program\n• Create gradual caloric deficit of 500-750 calories daily\n• Eliminate processed foods, fast food, and sugary beverages\n• Prioritize high-protein and high-fiber foods for improved satiety\n• Follow plate method: ½ non-starchy vegetables, ¼ lean protein, ¼ complex carbohydrates\n• Consume smaller portions more frequently (4-5 meals daily)\n• Drink minimum 2.5-3 liters of water daily\n• Restrict sodium intake (<2300mg daily) to reduce water retention";
+                        label15.Text = "Exercise Program:\n• Begin with light activity: 15-20 minute walks, three times weekly\n• Progressively increase duration to 30-45 minutes, five times weekly\n• Focus on non-weight bearing activities such as swimming and stationary cycling\n• Incorporate strength training using resistance bands or bodyweight exercises\n• Emphasize functional movements for daily living activities\n• Include flexibility and mobility exercises to prevent injuries\n• Monitor heart rate: maintain at 50-70% of maximum\n• Consider consulting with certified fitness professional for personalized programming";
                         break;
                     default:
-                        label8.Text = "Saran: Data tidak dikenali.";
+                        label8.Text = "Dietary recommendations: Data unavailable.";
+                        label15.Text = "Exercise recommendations: Data unavailable.";
                         break;
                 }
 
-                string dateForDB = now.ToString("yyyy-MM-dd");
-                float weight = float.Parse(textBox2.Text);
-                float height = float.Parse(textBox1.Text);
-                float bmiValue = (float)bmi;
-                float bodyFatValue = (float)bodyFat;
+                // Only save to database if user is logged in
+                if (isLoggedIn)
+                {
+                    string dateForDB = now.ToString("yyyy-MM-dd");
+                    float weight = float.Parse(textBox2.Text);
+                    float height = float.Parse(textBox1.Text);
+                    float bmiValue = (float)bmi;
+                    float bodyFatValue = (float)bodyFat;
 
-                SaveToDatabase(dateForDB, weight, height, bmiValue, bodyFatValue);
+                    SaveToDatabase(dateForDB, weight, height, bmiValue, bodyFatValue);
+                }
+
             }
             catch (Exception ex)
             {
@@ -226,8 +259,9 @@ namespace BMI_Calculator
             textBox2.Clear();
             textBox3.Clear();
 
-            label5.Text = "";
-            label6.Text = "";
+            label5.Text = "BMI";
+            label16.Text = "BMI Anda :";
+            label6.Text = "Body Fat";
         }
 
         private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
@@ -378,7 +412,7 @@ namespace BMI_Calculator
                 string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
                 using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
-                    string query = "INSERT INTO bmi_records (Date, Weight, Height, BMI, BodyFat) VALUES (@Date, @Weight, @Height, @BMI, @BodyFat)";
+                    string query = "INSERT INTO bmi_records (Date, Weight, Height, BMI, BodyFat, UserEmail) VALUES (@Date, @Weight, @Height, @BMI, @BodyFat, @UserEmail)";
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
                         cmd.Parameters.AddWithValue("@Date", date);
@@ -386,6 +420,7 @@ namespace BMI_Calculator
                         cmd.Parameters.AddWithValue("@Height", height);
                         cmd.Parameters.AddWithValue("@BMI", bmi);
                         cmd.Parameters.AddWithValue("@BodyFat", bodyFat);
+                        cmd.Parameters.AddWithValue("@UserEmail", isLoggedIn ? loggedInEmail : "guest"); // Save as guest if not logged in
 
                         conn.Open();
                         cmd.ExecuteNonQuery();
@@ -469,73 +504,56 @@ namespace BMI_Calculator
                 cartesianChart1.AxisX[0].Labels.Clear();
                 riwayatBMI.Clear();
 
-                int recordCount = 0;
-
                 string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
                 using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
 
-                    // First, count total records
-                    string countQuery = "SELECT COUNT(*) FROM bmi_records";
-                    using (MySqlCommand countCmd = new MySqlCommand(countQuery, conn))
+                    string query;
+                    MySqlCommand cmd;
+
+                    // If logged in, only show user's data
+                    if (isLoggedIn)
                     {
-                        recordCount = Convert.ToInt32(countCmd.ExecuteScalar());
-                        Console.WriteLine($"Total records in database: {recordCount}");
+                        query = "SELECT * FROM bmi_records WHERE UserEmail = @UserEmail ORDER BY Date DESC";
+                        cmd = new MySqlCommand(query, conn);
+                        cmd.Parameters.AddWithValue("@UserEmail", loggedInEmail);
+                    }
+                    else
+                    {
+                        // Show all data without user filtering when not logged in
+                        query = "SELECT * FROM bmi_records WHERE UserEmail = 'guest' OR UserEmail IS NULL ORDER BY Date DESC";
+                        cmd = new MySqlCommand(query, conn);
                     }
 
-                    if (recordCount == 0)
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
                     {
-                        MessageBox.Show("No BMI records found in the database.",
-                                       "Database Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        hitungKe = 1;
-                        return;
-                    }
+                        int counter = 1;
 
-                    string query = "SELECT * FROM bmi_records ORDER BY Date DESC";
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                    {
-                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        while (reader.Read())
                         {
-                            int counter = 1;
+                            DateTime date = reader.GetDateTime("Date");
+                            float bmi = reader.GetFloat("BMI");
 
-                            Console.WriteLine("Starting to read database records...");
+                            string formattedDate = date.ToString("dd/MM/yyyy");
+                            string formattedTime = date.ToString("HH:mm:ss");
 
-                            while (reader.Read())
-                            {
-                                Console.WriteLine($"Reading record {counter} of {recordCount}");
+                            string logItem = string.Format("{0,-12}{1,-12}{2}",
+                                                          bmi.ToString("F1"),
+                                                          formattedDate,
+                                                          formattedTime);
 
-                                DateTime date = reader.GetDateTime("Date");
-                                float bmi = reader.GetFloat("BMI");
+                            listBox1.Items.Add(logItem);
 
-                                string formattedDate = date.ToString("dd/MM/yyyy");
-                                string formattedTime = date.ToString("HH:mm:ss");
+                            lineSeries.Values.Add(bmi);
+                            cartesianChart1.AxisX[0].Labels.Add(counter.ToString());
 
-                                string logItem = string.Format("{0,-12}{1,-12}{2}",
-                                                              bmi.ToString("F1"),
-                                                              formattedDate,
-                                                              formattedTime);
+                            riwayatBMI.Add(bmi);
 
-                                listBox1.Items.Add(logItem);
-                                Console.WriteLine($"Added to listBox1: {logItem}");
-
-                                lineSeries.Values.Add(bmi);
-                                cartesianChart1.AxisX[0].Labels.Add(counter.ToString());
-
-                                riwayatBMI.Add(bmi);
-
-                                counter++;
-                            }
-
-                            hitungKe = counter;
-                            Console.WriteLine($"Finished loading {counter - 1} records");
-
-                            if (counter > 1)
-                            {
-                                MessageBox.Show($"Successfully loaded {counter - 1} BMI records from database.",
-                                               "Data Loaded", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            }
+                            counter++;
                         }
+
+                        hitungKe = counter;
                     }
                 }
 
@@ -544,11 +562,304 @@ namespace BMI_Calculator
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error loading data from database: " + ex.Message + "\n\nStack Trace: " + ex.StackTrace,
+                MessageBox.Show("Error loading data from database: " + ex.Message,
                                "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                Console.WriteLine("Database error: " + ex.Message);
-                Console.WriteLine("Stack trace: " + ex.StackTrace);
             }
         }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            if (isLoggedIn)
+            {
+                ShowPanel(panel2);
+            }
+            else
+            {
+                MessageBox.Show("Please login to continue", "Need Login",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                lastButtonClicked = 6;
+                ShowPanel(panel5);
+            }
+        }
+
+        private void label10_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label12_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox4_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            ShowPanel(panel1);
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            if (isLoggedIn)
+            {
+                ShowPanel(panel3);
+            }
+            else
+            {
+                MessageBox.Show("Please login to continue", "Need Login",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                lastButtonClicked = 7;
+                ShowPanel(panel5); // Show login panel
+            }
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            if (isLoggedIn)
+            {
+                ShowPanel(panel4);
+            }
+            else
+            {
+                MessageBox.Show("Please login to continue", "Need Login",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                lastButtonClicked = 8;
+                ShowPanel(panel5); // Show login panel
+            }
+        }
+
+        private void panel4_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+        private void panel3_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void label15_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label13_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label14_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox5_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            string email = textBox4.Text.Trim();
+            string password = textBox5.Text;
+
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show("Please enter both email and password", "Login Failed",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (AuthenticateUser(email, password))
+            {
+                isLoggedIn = true;
+                loggedInEmail = email;
+                label18.Text = $"Welcome {email}";
+
+                // Redirect based on which button was clicked last
+                switch (lastButtonClicked)
+                {
+                    case 6:
+                        ShowPanel(panel2);
+                        break;
+                    case 7:
+                        ShowPanel(panel3);
+                        break;
+                    case 8:
+                        ShowPanel(panel4);
+                        break;
+                    default:
+                        ShowPanel(panel1); // Default to main panel
+                        break;
+                }
+
+                MessageBox.Show($"Welcome back, {email}!", "Login Successful",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("Invalid email or password. Please try again.", "Login Failed",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+            isLoggedIn = false;
+            loggedInEmail = "";
+            label18.Text = "Please login to continue";
+
+            MessageBox.Show("You have been logged out successfully.", "Logout Successful",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowPanel(panel5);
+        }
+
+        private void label11_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel5_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void label16_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label17_Click(object sender, EventArgs e)
+        {
+
+        }
+        private bool AuthenticateUser(string email, string password)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = "SELECT * FROM users WHERE Email = @Email AND Password = @Password";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Email", email);
+                        cmd.Parameters.AddWithValue("@Password", password);
+
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            return reader.HasRows; // Returns true if user exists with matching credentials
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Authentication Error: " + ex.Message, "Database Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
+        // User registration method
+        private bool RegisterUser(string email, string password)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    // Check if email already exists
+                    string checkQuery = "SELECT COUNT(*) FROM users WHERE Email = @Email";
+                    using (MySqlCommand checkCmd = new MySqlCommand(checkQuery, conn))
+                    {
+                        checkCmd.Parameters.AddWithValue("@Email", email);
+                        int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                        if (count > 0)
+                        {
+                            MessageBox.Show("Email already registered. Please use a different email or login.",
+                                "Registration Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return false;
+                        }
+                    }
+
+                    // Insert new user
+                    string insertQuery = "INSERT INTO users (Email, Password) VALUES (@Email, @Password)";
+                    using (MySqlCommand cmd = new MySqlCommand(insertQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Email", email);
+                        cmd.Parameters.AddWithValue("@Password", password);
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Registration Error: " + ex.Message, "Database Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+            string email = textBox4.Text.Trim();
+            string password = textBox5.Text;
+
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            {
+                MessageBox.Show("Please enter both email and password", "Registration Failed",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (RegisterUser(email, password))
+            {
+                MessageBox.Show("Registration successful! You can now login.", "Registration Success",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // Clear the fields
+                textBox4.Clear();
+                textBox5.Clear();
+            }
+        }
+
+        private void button14_Click(object sender, EventArgs e)
+        {
+            ShowPanel(panel1);
+        }
+
+        private void button15_Click(object sender, EventArgs e)
+        {
+            isLoggedIn = false;
+            loggedInEmail = "";
+            label17.Text = "Please login to continue";
+
+            MessageBox.Show("You have been logged out successfully.", "Logout Successful",
+                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void label19_Click(object sender, EventArgs e)
+        {
+
+        }
     }
-}
+    }
