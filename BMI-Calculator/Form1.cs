@@ -30,6 +30,10 @@ namespace BMI_Calculator
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+
             panel1.Visible = true;
             panel2.Visible = false;
             panel3.Visible = false;
@@ -708,12 +712,118 @@ namespace BMI_Calculator
 
         private void button10_Click(object sender, EventArgs e)
         {
+            if (!isLoggedIn)
+            {
+                MessageBox.Show("You must be logged in to change your email.", "Not Logged In",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
+            string newEmail = Microsoft.VisualBasic.Interaction.InputBox(
+                "Enter your new email address:",
+                "Change Email",
+                loggedInEmail);
+
+            // If user cancels or enters empty string
+            if (string.IsNullOrWhiteSpace(newEmail))
+            {
+                return;
+            }
+
+            // Validate email format
+            if (!IsValidEmail(newEmail))
+            {
+                MessageBox.Show("Please enter a valid email address.", "Invalid Email",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Check if the new email already exists (except for current user)
+            if (EmailExistsForOtherUser(newEmail, loggedInEmail))
+            {
+                MessageBox.Show("This email is already in use by another account.", "Email Exists",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Confirm with current password for security
+            string currentPassword = Microsoft.VisualBasic.Interaction.InputBox(
+                "Please enter your current password to confirm:",
+                "Confirm Password",
+                "");
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+            {
+                return;
+            }
+
+            if (UpdateUserEmail(loggedInEmail, newEmail, currentPassword))
+            {
+                string oldEmail = loggedInEmail;
+                loggedInEmail = newEmail;
+                label18.Text = $"Welcome {newEmail}";
+
+                MessageBox.Show("Your email has been updated successfully.", "Email Updated",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void button11_Click(object sender, EventArgs e)
         {
+            if (!isLoggedIn)
+            {
+                MessageBox.Show("You must be logged in to change your password.", "Not Logged In",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
+            // Verify current password
+            string currentPassword = Microsoft.VisualBasic.Interaction.InputBox(
+                "Enter your current password:",
+                "Verify Current Password",
+                "");
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+            {
+                return;
+            }
+
+            if (!VerifyCurrentPassword(loggedInEmail, currentPassword))
+            {
+                MessageBox.Show("Current password is incorrect. Please try again.", "Authentication Failed",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Get new password
+            string newPassword = Microsoft.VisualBasic.Interaction.InputBox(
+                "Enter your new password:",
+                "New Password",
+                "");
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+            {
+                return;
+            }
+
+            // Confirm new password
+            string confirmPassword = Microsoft.VisualBasic.Interaction.InputBox(
+                "Confirm your new password:",
+                "Confirm Password",
+                "");
+
+            if (newPassword != confirmPassword)
+            {
+                MessageBox.Show("Passwords do not match. Please try again.", "Password Mismatch",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            if (UpdateUserPassword(loggedInEmail, newPassword))
+            {
+                MessageBox.Show("Your password has been updated successfully.", "Password Updated",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void button12_Click(object sender, EventArgs e)
@@ -860,6 +970,154 @@ namespace BMI_Calculator
         private void label19_Click(object sender, EventArgs e)
         {
 
+        }
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool EmailExistsForOtherUser(string newEmail, string currentEmail)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = "SELECT COUNT(*) FROM users WHERE Email = @Email AND Email != @CurrentEmail";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Email", newEmail);
+                        cmd.Parameters.AddWithValue("@CurrentEmail", currentEmail);
+                        int count = Convert.ToInt32(cmd.ExecuteScalar());
+                        return count > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return true; // Assume exists to prevent update on error
+            }
+        }
+
+        private bool UpdateUserEmail(string oldEmail, string newEmail, string password)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    // First verify the password is correct
+                    string verifyQuery = "SELECT COUNT(*) FROM users WHERE Email = @Email AND Password = @Password";
+                    using (MySqlCommand verifyCmd = new MySqlCommand(verifyQuery, conn))
+                    {
+                        verifyCmd.Parameters.AddWithValue("@Email", oldEmail);
+                        verifyCmd.Parameters.AddWithValue("@Password", password);
+                        int count = Convert.ToInt32(verifyCmd.ExecuteScalar());
+
+                        if (count == 0)
+                        {
+                            MessageBox.Show("Incorrect password. Email change failed.", "Authentication Failed",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return false;
+                        }
+                    }
+
+                    // Update email in users table
+                    string updateUserQuery = "UPDATE users SET Email = @NewEmail WHERE Email = @OldEmail";
+                    using (MySqlCommand updateUserCmd = new MySqlCommand(updateUserQuery, conn))
+                    {
+                        updateUserCmd.Parameters.AddWithValue("@NewEmail", newEmail);
+                        updateUserCmd.Parameters.AddWithValue("@OldEmail", oldEmail);
+                        int userRowsAffected = updateUserCmd.ExecuteNonQuery();
+
+                        if (userRowsAffected == 0)
+                        {
+                            MessageBox.Show("Failed to update email in users table.", "Update Failed",
+                                MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return false;
+                        }
+                    }
+
+                    // Update UserEmail in bmi_records table
+                    string updateRecordsQuery = "UPDATE bmi_records SET UserEmail = @NewEmail WHERE UserEmail = @OldEmail";
+                    using (MySqlCommand updateRecordsCmd = new MySqlCommand(updateRecordsQuery, conn))
+                    {
+                        updateRecordsCmd.Parameters.AddWithValue("@NewEmail", newEmail);
+                        updateRecordsCmd.Parameters.AddWithValue("@OldEmail", oldEmail);
+                        updateRecordsCmd.ExecuteNonQuery();
+                        // We don't check rows affected here as there might not be any BMI records
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
+        private bool VerifyCurrentPassword(string email, string password)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = "SELECT COUNT(*) FROM users WHERE Email = @Email AND Password = @Password";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Email", email);
+                        cmd.Parameters.AddWithValue("@Password", password);
+                        int count = Convert.ToInt32(cmd.ExecuteScalar());
+                        return count > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
+        private bool UpdateUserPassword(string email, string newPassword)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = "UPDATE users SET Password = @NewPassword WHERE Email = @Email";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@NewPassword", newPassword);
+                        cmd.Parameters.AddWithValue("@Email", email);
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
         }
     }
     }

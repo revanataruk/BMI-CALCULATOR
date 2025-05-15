@@ -136,6 +136,7 @@
             // 
             // panel5
             // 
+            this.panel5.BackgroundImage = global::BMI_Calculator.Properties.Resources._3;
             this.panel5.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.panel5.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel5.Controls.Add(this.button13);
@@ -248,6 +249,7 @@
             // 
             // panel4
             // 
+            this.panel4.BackgroundImage = global::BMI_Calculator.Properties.Resources._2;
             this.panel4.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.panel4.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel4.Controls.Add(this.button15);
@@ -322,7 +324,7 @@
             this.button10.Name = "button10";
             this.button10.Size = new System.Drawing.Size(257, 33);
             this.button10.TabIndex = 13;
-            this.button10.Text = "Change name";
+            this.button10.Text = "Change email";
             this.button10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.button10.UseVisualStyleBackColor = false;
             this.button10.Click += new System.EventHandler(this.button10_Click);
@@ -340,6 +342,7 @@
             // 
             // panel3
             // 
+            this.panel3.BackgroundImage = global::BMI_Calculator.Properties.Resources._5;
             this.panel3.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.panel3.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel3.Controls.Add(this.button17);
@@ -404,6 +407,7 @@
             // 
             // panel2
             // 
+            this.panel2.BackgroundImage = global::BMI_Calculator.Properties.Resources._1;
             this.panel2.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel2.Controls.Add(this.button4);
@@ -503,6 +507,7 @@
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.SystemColors.Control;
+            this.panel1.BackgroundImage = global::BMI_Calculator.Properties.Resources._3;
             this.panel1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.panel1.Controls.Add(this.label17);
