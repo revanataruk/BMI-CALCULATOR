@@ -264,7 +264,7 @@ namespace BMI_Calculator
             textBox3.Clear();
 
             label5.Text = "BMI";
-            label16.Text = "BMI Anda :";
+            label16.Text = "BMI :";
             label6.Text = "Body Fat";
         }
 
