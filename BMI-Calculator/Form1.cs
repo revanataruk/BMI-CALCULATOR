@@ -216,7 +216,6 @@ namespace BMI_Calculator
                         break;
                 }
 
-                // Only save to database if user is logged in
                 if (isLoggedIn)
                 {
                     string dateForDB = now.ToString("yyyy-MM-dd");
@@ -409,167 +408,6 @@ namespace BMI_Calculator
                 MessageBox.Show("No data found for that date.", "Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-        private void SaveToDatabase(string date, float weight, float height, float bmi, float bodyFat)
-        {
-            try
-            {
-                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
-                using (MySqlConnection conn = new MySqlConnection(connectionString))
-                {
-                    string query = "INSERT INTO bmi_records (Date, Weight, Height, BMI, BodyFat, UserEmail) VALUES (@Date, @Weight, @Height, @BMI, @BodyFat, @UserEmail)";
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@Date", date);
-                        cmd.Parameters.AddWithValue("@Weight", weight);
-                        cmd.Parameters.AddWithValue("@Height", height);
-                        cmd.Parameters.AddWithValue("@BMI", bmi);
-                        cmd.Parameters.AddWithValue("@BodyFat", bodyFat);
-                        cmd.Parameters.AddWithValue("@UserEmail", isLoggedIn ? loggedInEmail : "guest"); // Save as guest if not logged in
-
-                        conn.Open();
-                        cmd.ExecuteNonQuery();
-                        MessageBox.Show("Data successfully saved to database!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Database Error: " + ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        private void DeleteFromDatabase(string datetimeFull, float bmi)
-        {
-            try
-            {
-                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
-                using (MySqlConnection conn = new MySqlConnection(connectionString))
-                {
-                    conn.Open();
-                    string selectQuery = "SELECT * FROM bmi_records WHERE BMI BETWEEN @BMIMin AND @BMIMax";
-                    using (MySqlCommand cmd = new MySqlCommand(selectQuery, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@BMIMin", bmi - 0.1);
-                        cmd.Parameters.AddWithValue("@BMIMax", bmi + 0.1);
-                        using (MySqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            bool dataFound = false;
-                            int matchId = -1;
-
-                            while (reader.Read())
-                            {
-                                dataFound = true;
-                                matchId = reader.GetInt32("ID");
-                                break;
-                            }
-
-                            reader.Close();
-
-                            if (dataFound && matchId > 0)
-                            {
-                                string deleteQuery = "DELETE FROM bmi_records WHERE ID = @ID";
-                                using (MySqlCommand deleteCmd = new MySqlCommand(deleteQuery, conn))
-                                {
-                                    deleteCmd.Parameters.AddWithValue("@ID", matchId);
-                                    int rowsAffected = deleteCmd.ExecuteNonQuery();
-
-                                    if (rowsAffected > 0)
-                                    {
-                                        MessageBox.Show("Data succesfully deleted!", "Succes", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show("Failed to delete data by ID " + matchId, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                MessageBox.Show("BMi data like " + bmi + " not found in database.",
-                                               "Data not found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Database Error: " + ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        private void LoadDataFromDatabase()
-        {
-            try
-            {
-                listBox1.Items.Clear();
-                listBox1.Items.Add("Bmi          Date                  Time");
-
-                var lineSeries = cartesianChart1.Series[0] as LiveCharts.Wpf.LineSeries;
-                lineSeries.Values.Clear();
-                cartesianChart1.AxisX[0].Labels.Clear();
-                riwayatBMI.Clear();
-
-                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
-                using (MySqlConnection conn = new MySqlConnection(connectionString))
-                {
-                    conn.Open();
-
-                    string query;
-                    MySqlCommand cmd;
-
-                    // If logged in, only show user's data
-                    if (isLoggedIn)
-                    {
-                        query = "SELECT * FROM bmi_records WHERE UserEmail = @UserEmail ORDER BY Date DESC";
-                        cmd = new MySqlCommand(query, conn);
-                        cmd.Parameters.AddWithValue("@UserEmail", loggedInEmail);
-                    }
-                    else
-                    {
-                        // Show all data without user filtering when not logged in
-                        query = "SELECT * FROM bmi_records WHERE UserEmail = 'guest' OR UserEmail IS NULL ORDER BY Date DESC";
-                        cmd = new MySqlCommand(query, conn);
-                    }
-
-                    using (MySqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        int counter = 1;
-
-                        while (reader.Read())
-                        {
-                            DateTime date = reader.GetDateTime("Date");
-                            float bmi = reader.GetFloat("BMI");
-
-                            string formattedDate = date.ToString("dd/MM/yyyy");
-                            string formattedTime = date.ToString("HH:mm:ss");
-
-                            string logItem = string.Format("{0,-12}{1,-12}{2}",
-                                                          bmi.ToString("F1"),
-                                                          formattedDate,
-                                                          formattedTime);
-
-                            listBox1.Items.Add(logItem);
-
-                            lineSeries.Values.Add(bmi);
-                            cartesianChart1.AxisX[0].Labels.Add(counter.ToString());
-
-                            riwayatBMI.Add(bmi);
-
-                            counter++;
-                        }
-
-                        hitungKe = counter;
-                    }
-                }
-
-                listBox1.Refresh();
-                cartesianChart1.Update();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error loading data from database: " + ex.Message,
-                               "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
 
         private void button6_Click(object sender, EventArgs e)
         {
@@ -719,7 +557,6 @@ namespace BMI_Calculator
                 return;
             }
 
-            // Validate email format
             if (!IsValidEmail(newEmail))
             {
                 MessageBox.Show("Please enter a valid email address.", "Invalid Email",
@@ -727,7 +564,6 @@ namespace BMI_Calculator
                 return;
             }
 
-            // Check if the new email already exists (except for current user)
             if (EmailExistsForOtherUser(newEmail, loggedInEmail))
             {
                 MessageBox.Show("This email is already in use by another account.", "Email Exists",
@@ -735,7 +571,6 @@ namespace BMI_Calculator
                 return;
             }
 
-            // Confirm with current password for security
             string currentPassword = Microsoft.VisualBasic.Interaction.InputBox(
                 "Please enter your current password to confirm:",
                 "Confirm Password",
@@ -766,7 +601,6 @@ namespace BMI_Calculator
                 return;
             }
 
-            // Verify current password
             string currentPassword = Microsoft.VisualBasic.Interaction.InputBox(
                 "Enter your current password:",
                 "Verify Current Password",
@@ -784,7 +618,6 @@ namespace BMI_Calculator
                 return;
             }
 
-            // Get new password
             string newPassword = Microsoft.VisualBasic.Interaction.InputBox(
                 "Enter your new password:",
                 "New Password",
@@ -795,7 +628,6 @@ namespace BMI_Calculator
                 return;
             }
 
-            // Confirm new password
             string confirmPassword = Microsoft.VisualBasic.Interaction.InputBox(
                 "Confirm your new password:",
                 "Confirm Password",
@@ -845,78 +677,6 @@ namespace BMI_Calculator
         {
 
         }
-        private bool AuthenticateUser(string email, string password)
-        {
-            try
-            {
-                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
-                using (MySqlConnection conn = new MySqlConnection(connectionString))
-                {
-                    conn.Open();
-                    string query = "SELECT * FROM users WHERE Email = @Email AND Password = @Password";
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@Email", email);
-                        cmd.Parameters.AddWithValue("@Password", password);
-
-                        using (MySqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            return reader.HasRows; // Returns true if user exists with matching credentials
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Authentication Error: " + ex.Message, "Database Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-        }
-
-        // User registration method
-        private bool RegisterUser(string email, string password)
-        {
-            try
-            {
-                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
-                using (MySqlConnection conn = new MySqlConnection(connectionString))
-                {
-                    conn.Open();
-
-                    // Check if email already exists
-                    string checkQuery = "SELECT COUNT(*) FROM users WHERE Email = @Email";
-                    using (MySqlCommand checkCmd = new MySqlCommand(checkQuery, conn))
-                    {
-                        checkCmd.Parameters.AddWithValue("@Email", email);
-                        int count = Convert.ToInt32(checkCmd.ExecuteScalar());
-
-                        if (count > 0)
-                        {
-                            MessageBox.Show("Email already registered. Please use a different email or login.",
-                                "Registration Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            return false;
-                        }
-                    }
-
-                    // Insert new user
-                    string insertQuery = "INSERT INTO users (Email, Password) VALUES (@Email, @Password)";
-                    using (MySqlCommand cmd = new MySqlCommand(insertQuery, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@Email", email);
-                        cmd.Parameters.AddWithValue("@Password", password);
-                        int rowsAffected = cmd.ExecuteNonQuery();
-                        return rowsAffected > 0;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Registration Error: " + ex.Message, "Database Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-        }
 
         private void button13_Click(object sender, EventArgs e)
         {
@@ -935,7 +695,6 @@ namespace BMI_Calculator
                 MessageBox.Show("Registration successful! You can now login.", "Registration Success",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // Clear the fields
                 textBox4.Clear();
                 textBox5.Clear();
             }
@@ -973,6 +732,105 @@ namespace BMI_Calculator
             }
         }
 
+        private void SaveToDatabase(string date, float weight, float height, float bmi, float bodyFat)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    string query = "INSERT INTO bmi_records (Date, Weight, Height, BMI, BodyFat, UserEmail) VALUES (@Date, @Weight, @Height, @BMI, @BodyFat, @UserEmail)";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Date", date);
+                        cmd.Parameters.AddWithValue("@Weight", weight);
+                        cmd.Parameters.AddWithValue("@Height", height);
+                        cmd.Parameters.AddWithValue("@BMI", bmi);
+                        cmd.Parameters.AddWithValue("@BodyFat", bodyFat);
+                        cmd.Parameters.AddWithValue("@UserEmail", isLoggedIn ? loggedInEmail : "guest");
+
+                        conn.Open();
+                        cmd.ExecuteNonQuery();
+                        MessageBox.Show("Data successfully saved to database!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database Error: " + ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private bool AuthenticateUser(string email, string password)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string query = "SELECT * FROM users WHERE Email = @Email AND Password = @Password";
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Email", email);
+                        cmd.Parameters.AddWithValue("@Password", password);
+
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            return reader.HasRows; 
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Authentication Error: " + ex.Message, "Database Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
+        private bool RegisterUser(string email, string password)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string checkQuery = "SELECT COUNT(*) FROM users WHERE Email = @Email";
+                    using (MySqlCommand checkCmd = new MySqlCommand(checkQuery, conn))
+                    {
+                        checkCmd.Parameters.AddWithValue("@Email", email);
+                        int count = Convert.ToInt32(checkCmd.ExecuteScalar());
+
+                        if (count > 0)
+                        {
+                            MessageBox.Show("Email already registered. Please use a different email or login.",
+                                "Registration Failed", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            return false;
+                        }
+                    }
+
+                    string insertQuery = "INSERT INTO users (Email, Password) VALUES (@Email, @Password)";
+                    using (MySqlCommand cmd = new MySqlCommand(insertQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Email", email);
+                        cmd.Parameters.AddWithValue("@Password", password);
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return rowsAffected > 0;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Registration Error: " + ex.Message, "Database Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
         private bool EmailExistsForOtherUser(string newEmail, string currentEmail)
         {
             try
@@ -994,7 +852,7 @@ namespace BMI_Calculator
             catch (Exception ex)
             {
                 MessageBox.Show("Database Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return true; // Assume exists to prevent update on error
+                return true;
             }
         }
 
@@ -1007,7 +865,6 @@ namespace BMI_Calculator
                 {
                     conn.Open();
 
-                    // First verify the password is correct
                     string verifyQuery = "SELECT COUNT(*) FROM users WHERE Email = @Email AND Password = @Password";
                     using (MySqlCommand verifyCmd = new MySqlCommand(verifyQuery, conn))
                     {
@@ -1023,7 +880,6 @@ namespace BMI_Calculator
                         }
                     }
 
-                    // Update email in users table
                     string updateUserQuery = "UPDATE users SET Email = @NewEmail WHERE Email = @OldEmail";
                     using (MySqlCommand updateUserCmd = new MySqlCommand(updateUserQuery, conn))
                     {
@@ -1039,14 +895,12 @@ namespace BMI_Calculator
                         }
                     }
 
-                    // Update UserEmail in bmi_records table
                     string updateRecordsQuery = "UPDATE bmi_records SET UserEmail = @NewEmail WHERE UserEmail = @OldEmail";
                     using (MySqlCommand updateRecordsCmd = new MySqlCommand(updateRecordsQuery, conn))
                     {
                         updateRecordsCmd.Parameters.AddWithValue("@NewEmail", newEmail);
                         updateRecordsCmd.Parameters.AddWithValue("@OldEmail", oldEmail);
                         updateRecordsCmd.ExecuteNonQuery();
-                        // We don't check rows affected here as there might not be any BMI records
                     }
 
                     return true;
@@ -1056,6 +910,137 @@ namespace BMI_Calculator
             {
                 MessageBox.Show("Database Error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
+            }
+        }
+        private void DeleteFromDatabase(string datetimeFull, float bmi)
+        {
+            try
+            {
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+                    string selectQuery = "SELECT * FROM bmi_records WHERE BMI BETWEEN @BMIMin AND @BMIMax";
+                    using (MySqlCommand cmd = new MySqlCommand(selectQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@BMIMin", bmi - 0.1);
+                        cmd.Parameters.AddWithValue("@BMIMax", bmi + 0.1);
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            bool dataFound = false;
+                            int matchId = -1;
+
+                            while (reader.Read())
+                            {
+                                dataFound = true;
+                                matchId = reader.GetInt32("ID");
+                                break;
+                            }
+
+                            reader.Close();
+
+                            if (dataFound && matchId > 0)
+                            {
+                                string deleteQuery = "DELETE FROM bmi_records WHERE ID = @ID";
+                                using (MySqlCommand deleteCmd = new MySqlCommand(deleteQuery, conn))
+                                {
+                                    deleteCmd.Parameters.AddWithValue("@ID", matchId);
+                                    int rowsAffected = deleteCmd.ExecuteNonQuery();
+
+                                    if (rowsAffected > 0)
+                                    {
+                                        MessageBox.Show("Data succesfully deleted!", "Succes", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                    }
+                                    else
+                                    {
+                                        MessageBox.Show("Failed to delete data by ID " + matchId, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                MessageBox.Show("BMi data like " + bmi + " not found in database.",
+                                               "Data not found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Database Error: " + ex.Message, "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        private void LoadDataFromDatabase()
+        {
+            try
+            {
+                listBox1.Items.Clear();
+                listBox1.Items.Add("Bmi          Date                  Time");
+
+                var lineSeries = cartesianChart1.Series[0] as LiveCharts.Wpf.LineSeries;
+                lineSeries.Values.Clear();
+                cartesianChart1.AxisX[0].Labels.Clear();
+                riwayatBMI.Clear();
+
+                string connectionString = "Server=localhost;Database=bmi_calculator;Uid=root;Pwd=;";
+                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query;
+                    MySqlCommand cmd;
+
+                    if (isLoggedIn)
+                    {
+                        query = "SELECT * FROM bmi_records WHERE UserEmail = @UserEmail ORDER BY Date DESC";
+                        cmd = new MySqlCommand(query, conn);
+                        cmd.Parameters.AddWithValue("@UserEmail", loggedInEmail);
+                    }
+                    else
+                    {
+                        query = "SELECT * FROM bmi_records WHERE UserEmail = 'guest' OR UserEmail IS NULL ORDER BY Date DESC";
+                        cmd = new MySqlCommand(query, conn);
+                    }
+
+                    using (MySqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        int counter = 1;
+
+                        while (reader.Read())
+                        {
+                            DateTime date = reader.GetDateTime("Date");
+                            float bmi = reader.GetFloat("BMI");
+
+                            string formattedDate = date.ToString("dd/MM/yyyy");
+                            string formattedTime = date.ToString("HH:mm:ss");
+
+                            string logItem = string.Format("{0,-12}{1,-12}{2}",
+                                                          bmi.ToString("F1"),
+                                                          formattedDate,
+                                                          formattedTime);
+
+                            listBox1.Items.Add(logItem);
+
+                            lineSeries.Values.Add(bmi);
+                            cartesianChart1.AxisX[0].Labels.Add(counter.ToString());
+
+                            riwayatBMI.Add(bmi);
+
+                            counter++;
+                        }
+
+                        hitungKe = counter;
+                    }
+                }
+
+                listBox1.Refresh();
+                cartesianChart1.Update();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading data from database: " + ex.Message,
+                               "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
