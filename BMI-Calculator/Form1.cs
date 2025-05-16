@@ -264,7 +264,7 @@ namespace BMI_Calculator
             textBox3.Clear();
 
             label5.Text = "BMI";
-            label16.Text = "BMI :";
+            label16.Text = "BMI Anda :";
             label6.Text = "Body Fat";
         }
 
@@ -291,7 +291,7 @@ namespace BMI_Calculator
         private void label8_Click_1(object sender, EventArgs e)
         {
             label8.AutoSize = false;
-            label8.MaximumSize = new Size(400, 0); 
+            label8.MaximumSize = new Size(400, 0);
             label8.Size = new Size(400, label8.PreferredHeight);
             label8.TextAlign = ContentAlignment.TopLeft;
         }
@@ -525,19 +525,17 @@ namespace BMI_Calculator
                     }
                     else
                     {
-                        // Show guest data when not logged in
-                        query = "SELECT * FROM bmi_records WHERE UserEmail = 'guest' ORDER BY Date DESC";
+                        // Show all data without user filtering when not logged in
+                        query = "SELECT * FROM bmi_records WHERE UserEmail = 'guest' OR UserEmail IS NULL ORDER BY Date DESC";
                         cmd = new MySqlCommand(query, conn);
                     }
 
                     using (MySqlDataReader reader = cmd.ExecuteReader())
                     {
                         int counter = 1;
-                        bool hasData = false;
 
                         while (reader.Read())
                         {
-                            hasData = true;
                             DateTime date = reader.GetDateTime("Date");
                             float bmi = reader.GetFloat("BMI");
 
@@ -551,20 +549,15 @@ namespace BMI_Calculator
 
                             listBox1.Items.Add(logItem);
 
-                            // Add to chart
                             lineSeries.Values.Add(bmi);
                             cartesianChart1.AxisX[0].Labels.Add(counter.ToString());
+
                             riwayatBMI.Add(bmi);
 
                             counter++;
                         }
 
                         hitungKe = counter;
-
-                        if (!hasData)
-                        {
-                            Console.WriteLine("No data found for user: " + (isLoggedIn ? loggedInEmail : "guest"));
-                        }
                     }
                 }
 
@@ -574,7 +567,7 @@ namespace BMI_Calculator
             catch (Exception ex)
             {
                 MessageBox.Show("Error loading data from database: " + ex.Message,
-                              "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                               "Database Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -582,16 +575,12 @@ namespace BMI_Calculator
         {
             if (isLoggedIn)
             {
-                // Reload data when viewing BMI history
-                LoadDataFromDatabase();
                 ShowPanel(panel2);
             }
             else
             {
-                MessageBox.Show("Please login to continue", "Need Login",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 lastButtonClicked = 6;
-                ShowPanel(panel5); // Show login panel
+                ShowPanel(panel5);
             }
         }
 
@@ -623,10 +612,8 @@ namespace BMI_Calculator
             }
             else
             {
-                MessageBox.Show("Please login to continue", "Need Login",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 lastButtonClicked = 7;
-                ShowPanel(panel5); // Show login panel
+                ShowPanel(panel5); 
             }
         }
 
@@ -638,10 +625,8 @@ namespace BMI_Calculator
             }
             else
             {
-                MessageBox.Show("Please login to continue", "Need Login",
-                MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 lastButtonClicked = 8;
-                ShowPanel(panel5); // Show login panel
+                ShowPanel(panel5);
             }
         }
 
@@ -692,10 +677,6 @@ namespace BMI_Calculator
                 loggedInEmail = email;
                 label18.Text = $"Welcome {email}";
 
-                // Reload data from database based on logged in user
-                LoadDataFromDatabase();
-
-                // Redirect based on which button was clicked last
                 switch (lastButtonClicked)
                 {
                     case 6:
@@ -708,12 +689,9 @@ namespace BMI_Calculator
                         ShowPanel(panel4);
                         break;
                     default:
-                        ShowPanel(panel1); // Default to main panel
+                        ShowPanel(panel1); 
                         break;
                 }
-
-                MessageBox.Show($"Welcome back, {email}!", "Login Successful",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
@@ -736,7 +714,6 @@ namespace BMI_Calculator
                 "Change Email",
                 loggedInEmail);
 
-            // If user cancels or enters empty string
             if (string.IsNullOrWhiteSpace(newEmail))
             {
                 return;
@@ -844,13 +821,9 @@ namespace BMI_Calculator
             loggedInEmail = "";
             label18.Text = "Please login to continue";
 
-            // Reload data for guest user
-            LoadDataFromDatabase();
-
             MessageBox.Show("You have been logged out successfully.", "Logout Successful",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
             ShowPanel(panel5);
-
         }
 
         private void label11_Click(object sender, EventArgs e)
@@ -1136,4 +1109,4 @@ namespace BMI_Calculator
             }
         }
     }
-    }
+}
